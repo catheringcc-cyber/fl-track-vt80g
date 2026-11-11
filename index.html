@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="zh-HK">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>減脂追蹤</title>
+<style>
+:root{
+  --font-anthropic-sans:-apple-system,BlinkMacSystemFont,"PingFang HK","PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;
+  --font-anthropic-serif:"Songti TC","Noto Serif TC",Georgia,serif;
+  --color-bg:#faf9f5;--color-fg:#1f1e1d;--color-fg-muted:#6b6a65;--color-panel:#ffffff;--color-border-line:#e6e3da;
+  --color-ok:#2e7d4f;--color-warn:#b26a00;--color-bad:#c0392b;
+  --cds-surface-popover:#ffffff;--cds-border:#d9d6cc;--cds-text-secondary:#6b6a65;--cds-shadow-popover:0 4px 16px rgba(0,0,0,.12);
+  --cds-chart-grid:#ebe8df;--cds-chart-reference:#8a8880;--chart-1:#c96442;
+  --cds-font-size-title:1.75rem;--cds-font-size-heading:1.05rem;--cds-font-size-body:.95rem;--cds-font-size-caption:.8rem;
+  --cds-font-weight-medium:600;--cds-radius:12px;--cds-dur-slow:.3s;
+  --cds-gap-xs:.25rem;--cds-gap-md:.75rem;--cds-gap-lg:1.25rem;--cds-pad-xs:.35rem;--cds-pad-sm:.6rem;--cds-pad-lg:1rem;
+}
+@media (prefers-color-scheme:dark){:root{
+  --color-bg:#1f1e1d;--color-fg:#f3f1ea;--color-fg-muted:#a9a69c;--color-panel:#2a2927;--color-border-line:#3b3a36;
+  --color-ok:#6fcf97;--color-warn:#f2b866;--color-bad:#f08a7c;
+  --cds-surface-popover:#33322f;--cds-border:#4a4944;--cds-text-secondary:#a9a69c;--cds-shadow-popover:0 4px 16px rgba(0,0,0,.5);
+  --cds-chart-grid:#3b3a36;--cds-chart-reference:#8f8c83;--chart-1:#e08a6a;
+}}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--color-bg);padding:16px;padding-bottom:max(16px,env(safe-area-inset-bottom))}
+#dash-root{max-width:1100px;margin:0 auto}
+.fl .scroll{-webkit-overflow-scrolling:touch}
+.stamp{font:var(--cds-font-size-caption) var(--font-anthropic-sans);color:var(--color-fg-muted);text-align:center;margin:var(--cds-gap-lg) 0 0}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+</head>
+<body>
+<div id="dash-root">
+
+<style>
+.fl{font-family:var(--font-anthropic-sans);color:var(--color-fg)}
+.fl h1{font-family:var(--font-anthropic-serif);font-weight:400;font-size:var(--cds-font-size-title);margin:0 0 var(--cds-gap-xs)}
+.fl .lead{color:var(--color-fg-muted);margin:0 0 var(--cds-gap-lg);font-size:var(--cds-font-size-body)}
+.fl .lead b{color:var(--color-fg);font-weight:600}
+.fl .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,10rem),1fr));gap:var(--cds-gap-md);margin-bottom:var(--cds-gap-lg)}
+.fl .card{background:var(--color-panel);border:1px solid var(--color-border-line);border-radius:var(--cds-radius);padding:var(--cds-pad-lg);min-width:0}
+.fl .lab{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
+.fl .big{font-family:var(--font-anthropic-serif);font-weight:400;font-size:var(--cds-font-size-title);font-variant-numeric:tabular-nums;margin-top:var(--cds-gap-xs)}
+.fl .sub{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);margin-top:var(--cds-gap-xs)}
+.fl .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,20rem),1fr));gap:var(--cds-gap-md);margin-bottom:var(--cds-gap-lg)}
+.fl h2{font-size:var(--cds-font-size-heading);font-weight:var(--cds-font-weight-medium);margin:0}
+.fl .note{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);margin:var(--cds-gap-xs) 0 var(--cds-gap-md)}
+.fl .chart{position:relative;min-height:220px}
+.fl .chart svg{display:block;font-size:var(--cds-font-size-caption)}
+.fl table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;font-size:var(--cds-font-size-body)}
+.fl th,.fl td{text-align:right;padding:var(--cds-pad-xs) var(--cds-pad-sm);border-bottom:1px solid var(--color-border-line);white-space:nowrap}
+.fl th:first-child,.fl td:first-child{text-align:left}
+.fl td.txt,.fl th.txt{text-align:left;white-space:normal;min-width:10rem}
+.fl th{font-weight:var(--cds-font-weight-medium);color:var(--color-fg-muted);font-size:var(--cds-font-size-caption);position:sticky;top:0;background:var(--color-panel)}
+.fl .scroll{max-height:24rem;overflow:auto}
+.fl .good{color:var(--color-ok)}
+.fl .warn{color:var(--color-warn)}
+.fl .bad{color:var(--color-bad)}
+.fl .tip{position:absolute;background:var(--cds-surface-popover);border:1px solid var(--cds-border);border-radius:var(--cds-radius);box-shadow:var(--cds-shadow-popover);padding:var(--cds-pad-xs) var(--cds-pad-sm);font-size:var(--cds-font-size-caption);pointer-events:none;white-space:nowrap;z-index:2}
+.fl .tip .d{color:var(--cds-text-secondary)}
+.fl [data-dash-source-state=empty]{color:transparent}
+.fl [data-dash-source-state=refreshing]{opacity:.5;transition:opacity var(--cds-dur-slow)}
+</style>
+<div class="fl">
+  <h1 id="top">減脂追蹤</h1>
+  <p class="lead">開始記錄至今累計熱量差 <b data-draw="leadBal" data-source="summary" data-field="totalBalance" data-row="0">—</b> kcal，大約等於 <b data-draw="leadFat" data-source="summary" data-field="estFatKg" data-row="0">—</b> kg 脂肪；最新體重 <b data-draw="leadW" data-source="summary" data-field="latestWeight" data-row="0">—</b> kg，距離目標仲有 <b data-draw="leadGoal" data-source="summary" data-field="toGoal" data-row="0">—</b> kg。</p>
+
+  <div class="tiles">
+    <div class="card">
+      <div class="lab">累計熱量差（負數 = 缺口）</div>
+      <div class="big" data-draw="tBal" data-source="summary" data-field="totalBalance" data-row="0">—</div>
+      <div class="sub">以 TDEE 1,650 kcal 計，<span data-draw="tDays" data-source="summary" data-field="daysLogged" data-row="0">—</span> 日完整紀錄</div>
+    </div>
+    <div class="card">
+      <div class="lab">估計減咗脂肪</div>
+      <div class="big"><span data-draw="tFat" data-source="summary" data-field="estFatKg" data-row="0">—</span> kg</div>
+      <div class="sub">每 7,700 kcal 缺口 ≈ 1 kg</div>
+    </div>
+    <div class="card">
+      <div class="lab">最新體重</div>
+      <div class="big"><span data-draw="tW" data-source="summary" data-field="latestWeight" data-row="0">—</span> kg</div>
+      <div class="sub">目標 54.6 kg</div>
+    </div>
+    <div class="card">
+      <div class="lab">近 7 日平均體重</div>
+      <div class="big"><span data-draw="tW7" data-source="summary" data-field="avg7Weight" data-row="0">—</span> kg</div>
+      <div class="sub">比單日磅數穩陣</div>
+    </div>
+    <div class="card">
+      <div class="lab">平均每日熱量</div>
+      <div class="big" data-draw="tK" data-source="summary" data-field="avgKcal" data-row="0">—</div>
+      <div class="sub">目標約 1,350 kcal</div>
+    </div>
+    <div class="card">
+      <div class="lab">平均每日蛋白質</div>
+      <div class="big"><span data-draw="tP" data-source="summary" data-field="avgProtein" data-row="0">—</span> g</div>
+      <div class="sub">目標 100 g（最低 90 g）</div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h2 id="kcal-chart">每日熱量</h2>
+      <p class="note">虛線：目標 1,350 同 TDEE 1,650。淺色 = 當日未完。</p>
+      <div class="chart" data-draw="kchart" data-source="days"></div>
+    </div>
+    <div class="card">
+      <h2 id="protein-chart">每日蛋白質</h2>
+      <p class="note">虛線：目標 100 g。</p>
+      <div class="chart" data-draw="pchart" data-source="days"></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:var(--cds-gap-lg)">
+    <h2 id="weight-chart">體重</h2>
+    <p class="note">點 = 每日磅數；線 = 7 日平均；虛線 = 目標 54.6 kg。</p>
+    <div class="chart" data-draw="wchart" data-source="days"></div>
+  </div>
+
+  <div class="card" style="margin-bottom:var(--cds-gap-lg)">
+    <h2 id="weekly">每週回顧</h2>
+    <p class="note">週一開始；平均只計完整日子。達標 = 熱量 1,200–1,450 而且蛋白質 ≥ 90 g。</p>
+    <div class="scroll">
+      <table data-source="weekly" data-row-key="week">
+        <thead><tr><th data-field="week">週（由）</th><th data-field="days">日數</th><th data-field="avgKcal">平均熱量</th><th data-field="avgProtein">平均蛋白質</th><th data-field="balance">熱量差</th><th data-field="avgWeight">平均體重</th><th data-field="hitDays">達標日</th></tr></thead>
+        <tbody data-draw="weekbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2 id="daily">每日紀錄</h2>
+    <p class="note">熱量同蛋白質係 Claude 按你報嘅食物估算，唔係精準數字。</p>
+    <div class="scroll">
+      <table data-source="days" data-row-key="date">
+        <thead><tr><th data-field="date">日期</th><th data-field="kcal">熱量</th><th data-field="protein">蛋白質</th><th data-field="balance">熱量差</th><th data-field="weight">體重</th><th data-field="rating">評分</th><th class="txt" data-field="note">食咗乜</th></tr></thead>
+        <tbody data-draw="daybody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<script>
+// 細型替身：代替 Claude dashboard 嘅 dash 物件，資料由同一個資料夾嘅 log.json 讀入
+window.dash = (() => {
+  const calcs = new Map(), draws = new Map(), store = new Map();
+  let ready = false;
+  const css = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  const run = () => draws.forEach((fn, name) => document.querySelectorAll('[data-draw="' + name + '"]').forEach((el) => { try { fn(el); } catch (e) { console.error(name, e); } }));
+  const get = (id) => {
+    if (!ready) return undefined;
+    if (!store.has(id) && calcs.has(id)) { const c = calcs.get(id); store.set(id, c.fn(...c.inputs.map((i) => get(i) || []))); }
+    return store.get(id);
+  };
+  const api = {
+    get colors() { return [css('--chart-1')]; },
+    calc: (id, def) => calcs.set(id, def),
+    draw: (name, fn) => draws.set(name, fn),
+    onData: (fn) => draws.set('__on' + draws.size, fn),
+    data: (id) => { const d = get(id); return d === undefined ? {status: 'loading', data: []} : {status: 'ok', data: d}; },
+    start() {
+      fetch('log.json', {cache: 'no-store'}).then((r) => r.json()).then((rows) => {
+        store.set('log', rows); ready = true; run();
+        const last = rows.map((r) => r.date).sort().pop();
+        const s = document.getElementById('stamp'); if (s && last) s.textContent = '資料更新至 ' + last;
+      }).catch((e) => { console.error(e); const s = document.getElementById('stamp'); if (s) s.textContent = '讀唔到資料（log.json）'; });
+      let t; addEventListener('resize', () => { clearTimeout(t); t = setTimeout(run, 150); });
+      matchMedia('(prefers-color-scheme:dark)').addEventListener('change', run);
+      document.addEventListener('touchstart', (e) => { if (!e.target.closest('svg')) document.querySelectorAll('.tip').forEach((x) => (x.hidden = true)); }, {passive: true});
+    }
+  };
+  return api;
+})();
+</script>
+<script>
+dash.calc('days', {
+  inputs: ['log'],
+  title: '每日紀錄連熱量差',
+  description: '每日熱量減 TDEE 1,650 kcal 得出熱量差，另計 7 日平均體重；未完嘅日子唔計熱量差。',
+  fn: (log) => {
+    const rows = log.map((r) => {
+      const complete = r.complete === true || r.complete === 'true';
+      const kcal = Number(r.kcal), protein = Number(r.protein);
+      const weight = r.weight == null || r.weight === '' ? null : Number(r.weight);
+      const rating = complete ? (kcal >= 1200 && kcal <= 1450 ? '熱量✅' : '熱量⚠️') + ' ' + (protein >= 90 ? '蛋白✅' : '蛋白⚠️') : '進行中';
+      return {date: String(r.date).slice(0, 10), kcal, protein, balance: complete ? kcal - 1650 : null, weight, complete, rating, note: r.note || ''};
+    }).sort((a, b) => (a.date < b.date ? -1 : 1));
+    for (const d of rows) {
+      const t = Date.parse(d.date);
+      const w = rows.filter((x) => x.weight != null && Date.parse(x.date) <= t && t - Date.parse(x.date) < 7 * 864e5);
+      d.avg7 = w.length ? w.reduce((s, x) => s + x.weight, 0) / w.length : null;
+    }
+    return rows;
+  }
+});
+dash.calc('summary', {
+  inputs: ['days'],
+  title: '累計總結',
+  description: '由開始記錄至今嘅累計熱量差、估計減脂（7,700 kcal = 1 kg）、平均熱量同蛋白質、最新同 7 日平均體重。',
+  fn: (days) => {
+    const c = days.filter((d) => d.complete);
+    const sum = (a, f) => a.reduce((s, d) => s + f(d), 0);
+    const bal = sum(c, (d) => d.balance);
+    const ws = days.filter((d) => d.weight != null);
+    const lw = ws[ws.length - 1];
+    return [{
+      daysLogged: c.length,
+      totalBalance: bal,
+      estFatKg: -bal / 7700,
+      avgKcal: c.length ? sum(c, (d) => d.kcal) / c.length : null,
+      avgProtein: c.length ? sum(c, (d) => d.protein) / c.length : null,
+      latestWeight: lw ? lw.weight : null,
+      avg7Weight: lw ? lw.avg7 : null,
+      toGoal: lw ? lw.weight - 54.6 : null
+    }];
+  }
+});
+dash.calc('weekly', {
+  inputs: ['days'],
+  title: '每週回顧',
+  description: '按週（週一開始）計平均熱量、蛋白質、熱量差、平均體重同達標日數。',
+  fn: (days) => {
+    const g = new Map();
+    for (const d of days) {
+      const t = new Date(d.date + 'T00:00:00Z');
+      const wk = new Date(t.getTime() - ((t.getUTCDay() + 6) % 7) * 864e5).toISOString().slice(0, 10);
+      if (!g.has(wk)) g.set(wk, []);
+      g.get(wk).push(d);
+    }
+    const s = (a, f) => a.reduce((p, d) => p + f(d), 0);
+    return [...g].map(([week, a]) => {
+      const c = a.filter((d) => d.complete), w = a.filter((d) => d.weight != null);
+      return {
+        week, days: c.length,
+        avgKcal: c.length ? s(c, (d) => d.kcal) / c.length : null,
+        avgProtein: c.length ? s(c, (d) => d.protein) / c.length : null,
+        balance: s(c, (d) => d.balance),
+        avgWeight: w.length ? s(w, (d) => d.weight) / w.length : null,
+        hitDays: c.filter((d) => d.kcal >= 1200 && d.kcal <= 1450 && d.protein >= 90).length
+      };
+    }).sort((a, b) => (a.week < b.week ? 1 : -1));
+  }
+});
+
+const TDEE = 1650, TARGET = 1350, PROT = 100, GOAL = 54.6;
+const n0 = d3.format(',.0f'), n1 = d3.format(',.1f'), n2 = d3.format('.2f');
+const signed = (v) => (v > 0 ? '+' : v < 0 ? '−' : '') + n0(Math.abs(v));
+const dayFmt = (s) => { const t = new Date(s + 'T00:00:00Z'); return d3.utcFormat('%-m/%-d')(t) + ' (' + '日一二三四五六'[t.getUTCDay()] + ')'; };
+const sumRow = () => { const s = dash.data('summary'); return s.status === 'ok' && s.data.length ? s.data[0] : null; };
+const txt = (name, field, fmt, cls) => dash.draw(name, (el) => {
+  const r = sumRow(); const v = r ? r[field] : null;
+  el.textContent = v == null || Number.isNaN(v) ? '—' : fmt(v);
+  el.classList.remove('good', 'bad', 'warn');
+  if (cls && v != null) { const c = cls(v); if (c) el.classList.add(c); }
+});
+const balCls = (v) => (v < 0 ? 'good' : v > 0 ? 'bad' : null);
+txt('leadBal', 'totalBalance', signed, balCls);
+txt('leadFat', 'estFatKg', n2);
+txt('leadW', 'latestWeight', n1);
+txt('leadGoal', 'toGoal', (v) => n1(Math.max(0, v)));
+txt('tBal', 'totalBalance', signed, balCls);
+txt('tDays', 'daysLogged', n0);
+txt('tFat', 'estFatKg', n2);
+txt('tW', 'latestWeight', n1);
+txt('tW7', 'avg7Weight', n1);
+txt('tK', 'avgKcal', n0, (v) => (v < 1200 ? 'warn' : v > 1450 ? 'bad' : 'good'));
+txt('tP', 'avgProtein', n0, (v) => (v >= 90 ? 'good' : 'warn'));
+
+function tipFor(el) {
+  const tip = document.createElement('div'); tip.className = 'tip'; tip.hidden = true; el.appendChild(tip);
+  return {
+    show(ev, lines) {
+      tip.replaceChildren();
+      lines.forEach((l, i) => { const d = document.createElement('div'); if (i === 0) d.className = 'd'; d.textContent = l; tip.appendChild(d); });
+      tip.hidden = false;
+      const b = el.getBoundingClientRect();
+      let x = ev.clientX - b.left + 12, y = ev.clientY - b.top + 12;
+      if (x + tip.offsetWidth > el.clientWidth) x = ev.clientX - b.left - tip.offsetWidth - 12;
+      if (x < 0) x = 0;
+      tip.style.left = x + 'px'; tip.style.top = y + 'px';
+    },
+    hide() { tip.hidden = true; }
+  };
+}
+
+function yAxis(svg, y, ticks, fmt) {
+  const g = svg.append('g').call(d3.axisLeft(y).ticks(ticks).tickSize(0).tickFormat(fmt)).attr('font-size', null).attr('font-family', null);
+  g.select('.domain').remove();
+  g.selectAll('text').attr('fill', 'var(--color-fg-muted)');
+  let w = 0; g.selectAll('text').each(function () { w = Math.max(w, this.getComputedTextLength()); });
+  return {g, w: w + 8};
+}
+
+function barChart(el, field, refs, unit) {
+  el.replaceChildren();
+  const D = dash.data('days');
+  if (D.status !== 'ok' || !D.data.length) { el.textContent = '—'; return; }
+  const rows = D.data, W = Math.max(280, el.clientWidth), H = 220, mt = 10, mb = 24;
+  const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`);
+  const y = d3.scaleLinear([0, d3.max([...rows.map((r) => r[field]), ...refs.map((r) => r.v)]) * 1.1], [H - mb, mt]).nice();
+  const ax = yAxis(svg, y, 4, d3.format(','));
+  const labels = svg.append('g');
+  let mr = 0;
+  refs.forEach((r) => { const t = labels.append('text').text(r.label).attr('fill', 'var(--color-fg-muted)'); mr = Math.max(mr, t.node().getComputedTextLength()); });
+  mr += 8;
+  const ml = ax.w;
+  ax.g.attr('transform', `translate(${ml},0)`);
+  const x = d3.scaleBand(rows.map((r) => r.date), [ml, W - mr]).padding(0.25);
+  svg.insert('g', ':first-child').selectAll('line').data(y.ticks(4)).join('line')
+    .attr('x1', ml).attr('x2', W - mr).attr('y1', (d) => y(d)).attr('y2', (d) => y(d)).attr('stroke', 'var(--cds-chart-grid)');
+  const bw = Math.min(32, x.bandwidth());
+  const tip = tipFor(el);
+  svg.append('g').selectAll('rect').data(rows).join('rect')
+    .attr('x', (r) => x(r.date) + (x.bandwidth() - bw) / 2).attr('width', bw)
+    .attr('y', (r) => y(r[field])).attr('height', (r) => y(0) - y(r[field]))
+    .attr('rx', 3).attr('fill', dash.colors[0]).attr('opacity', (r) => (r.complete ? 1 : 0.35))
+    .on('mousemove', (ev, r) => tip.show(ev, [dayFmt(r.date) + (r.complete ? '' : '・未完'), n0(r[field]) + ' ' + unit]))
+    .on('mouseleave', () => tip.hide());
+  refs.forEach((r, i) => {
+    svg.append('line').attr('x1', ml).attr('x2', W - mr).attr('y1', y(r.v)).attr('y2', y(r.v))
+      .attr('stroke', 'var(--cds-chart-reference)').attr('stroke-dasharray', '4 3');
+    labels.selectAll('text').filter((_, j) => j === i).attr('x', W - mr + 4).attr('y', y(r.v) + 4);
+  });
+  const step = Math.max(1, Math.ceil(rows.length / Math.max(1, (W - ml - mr) / 48)));
+  svg.append('g').selectAll('text').data(rows.filter((_, i) => i % step === 0)).join('text')
+    .attr('x', (r) => x(r.date) + x.bandwidth() / 2).attr('y', H - 6).attr('text-anchor', 'middle')
+    .attr('fill', 'var(--color-fg-muted)').text((r) => d3.utcFormat('%-m/%-d')(new Date(r.date + 'T00:00:00Z')));
+}
+
+dash.draw('kchart', (el) => barChart(el, 'kcal', [{v: TARGET, label: '目標 ' + n0(TARGET)}, {v: TDEE, label: 'TDEE ' + n0(TDEE)}], 'kcal'));
+dash.draw('pchart', (el) => barChart(el, 'protein', [{v: PROT, label: '目標 ' + PROT + 'g'}], 'g'));
+
+dash.draw('wchart', (el) => {
+  el.replaceChildren();
+  const D = dash.data('days');
+  const rows = D.status === 'ok' ? D.data.filter((r) => r.weight != null) : [];
+  if (!rows.length) { el.textContent = '—'; return; }
+  const W = Math.max(280, el.clientWidth), H = 220, mt = 10, mb = 24;
+  const pts = rows.map((r) => ({...r, t: new Date(r.date + 'T00:00:00Z')}));
+  let [t0, t1] = d3.extent(pts, (p) => p.t);
+  t0 = d3.utcDay.offset(t0, -1); t1 = d3.utcDay.offset(t1, 1);
+  const vals = [...pts.map((p) => p.weight), GOAL];
+  const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`);
+  const y = d3.scaleLinear([d3.min(vals) - 0.5, d3.max(vals) + 0.5], [H - mb, mt]).nice();
+  const ax = yAxis(svg, y, 4, d3.format('.1f'));
+  const gl = svg.append('text').text('目標 ' + GOAL).attr('fill', 'var(--color-fg-muted)');
+  const mr = gl.node().getComputedTextLength() + 8, ml = ax.w;
+  ax.g.attr('transform', `translate(${ml},0)`);
+  const x = d3.scaleUtc([t0, t1], [ml, W - mr]);
+  svg.insert('g', ':first-child').selectAll('line').data(y.ticks(4)).join('line')
+    .attr('x1', ml).attr('x2', W - mr).attr('y1', (d) => y(d)).attr('y2', (d) => y(d)).attr('stroke', 'var(--cds-chart-grid)');
+  svg.append('line').attr('x1', ml).attr('x2', W - mr).attr('y1', y(GOAL)).attr('y2', y(GOAL))
+    .attr('stroke', 'var(--cds-chart-reference)').attr('stroke-dasharray', '4 3');
+  gl.attr('x', W - mr + 4).attr('y', y(GOAL) + 4);
+  if (pts.length > 1) {
+    svg.append('path').datum(pts).attr('fill', 'none').attr('stroke', dash.colors[0]).attr('stroke-width', 2)
+      .attr('stroke-linecap', 'round').attr('stroke-linejoin', 'round')
+      .attr('d', d3.line((p) => x(p.t), (p) => y(p.avg7)));
+  }
+  const tip = tipFor(el);
+  svg.append('g').selectAll('circle').data(pts).join('circle')
+    .attr('cx', (p) => x(p.t)).attr('cy', (p) => y(p.weight)).attr('r', 4)
+    .attr('fill', 'var(--color-panel)').attr('stroke', dash.colors[0]).attr('stroke-width', 2)
+    .on('mousemove', (ev, p) => tip.show(ev, [dayFmt(p.date), '體重 ' + n1(p.weight) + ' kg', '7 日平均 ' + n1(p.avg7) + ' kg']))
+    .on('mouseleave', () => tip.hide());
+  const ticks = x.ticks(Math.max(2, Math.floor((W - ml - mr) / 70)));
+  svg.append('g').selectAll('text').data(ticks).join('text')
+    .attr('x', (t) => x(t)).attr('y', H - 6).attr('text-anchor', 'middle')
+    .attr('fill', 'var(--color-fg-muted)').text((t) => d3.utcFormat('%-m/%-d')(t));
+});
+
+function cell(tr, text, cls) { const td = document.createElement('td'); td.textContent = text; if (cls) td.className = cls; tr.appendChild(td); }
+
+dash.draw('daybody', (tb) => {
+  tb.replaceChildren();
+  const D = dash.data('days');
+  if (D.status !== 'ok') return;
+  [...D.data].reverse().forEach((r) => {
+    const tr = document.createElement('tr'); tr.dataset.key = r.date;
+    cell(tr, dayFmt(r.date));
+    cell(tr, n0(r.kcal));
+    cell(tr, n0(r.protein) + ' g', r.complete ? (r.protein >= 90 ? 'good' : 'warn') : null);
+    cell(tr, r.balance == null ? '—' : signed(r.balance), r.balance == null ? null : balCls(r.balance));
+    cell(tr, r.weight == null ? '—' : n1(r.weight));
+    cell(tr, r.rating);
+    cell(tr, r.note, 'txt');
+    tb.appendChild(tr);
+  });
+});
+
+dash.draw('weekbody', (tb) => {
+  tb.replaceChildren();
+  const D = dash.data('weekly');
+  if (D.status !== 'ok') return;
+  D.data.forEach((r) => {
+    const tr = document.createElement('tr'); tr.dataset.key = r.week;
+    cell(tr, d3.utcFormat('%-m/%-d')(new Date(r.week + 'T00:00:00Z')));
+    cell(tr, n0(r.days));
+    cell(tr, r.avgKcal == null ? '—' : n0(r.avgKcal));
+    cell(tr, r.avgProtein == null ? '—' : n0(r.avgProtein) + ' g');
+    cell(tr, signed(r.balance), balCls(r.balance));
+    cell(tr, r.avgWeight == null ? '—' : n1(r.avgWeight));
+    cell(tr, n0(r.hitDays));
+    tb.appendChild(tr);
+  });
+});
+</script>
+
+<p class="stamp" id="stamp"></p>
+</div>
+<script>dash.start();</script>
+</body>
+</html>
